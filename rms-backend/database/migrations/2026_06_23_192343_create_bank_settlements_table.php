@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('bank_settlements', function (Blueprint $table) {
             $table->id();
+            $table->string('utr_number', 64)->unique();
+            $table->decimal('deposit_amt', 12, 2);
+            $table->dateTime('credit_timestamp');
+            $table->string('sender_info', 150)->nullable();
+            $table->string('status', 30)->default('SETTLED');
             $table->timestamps();
         });
     }

@@ -13,6 +13,12 @@ return new class extends Migration
     {
         Schema::create('billing_transactions', function (Blueprint $table) {
             $table->id();
+            $table->string('merchant_txn_ref', 64)->index();
+            $table->string('consumer_no', 20)->index();
+            $table->decimal('posted_amt', 12, 2);
+            $table->dateTime('posting_timestamp');
+            $table->string('discom_code', 20);
+            $table->string('status', 30)->default('POSTED');
             $table->timestamps();
         });
     }
