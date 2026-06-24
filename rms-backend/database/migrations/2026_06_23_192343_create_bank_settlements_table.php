@@ -13,11 +13,13 @@ return new class extends Migration
     {
         Schema::create('bank_settlements', function (Blueprint $table) {
             $table->id();
-            $table->string('utr_number', 64)->unique();
-            $table->decimal('deposit_amt', 12, 2);
-            $table->dateTime('credit_timestamp');
-            $table->string('sender_info', 150)->nullable();
-            $table->string('status', 30)->default('SETTLED');
+            $table->string('bank_ref_no', 64)->unique();
+            $table->string('txn_id', 64)->index();
+            $table->date('settlement_date');
+            $table->time('settlement_time');
+            $table->decimal('settled_amount', 12, 2);
+            $table->string('settlement_status', 30)->default('SUCCESS');
+            $table->string('payment_gateway', 100)->default('BillDesk');
             $table->timestamps();
         });
     }

@@ -12,13 +12,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('exception_records', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('reconciliation_master_id')->constrained('reconciliation_masters')->cascadeOnDelete();
-            $table->string('exception_code', 30);
+           $table->id();
+
+           $table->foreignId('reconciliation_master_id')
+                ->constrained('reconciliation_masters')
+                ->cascadeOnDelete();
+
+            $table->string('txn_id', 64)->index();
+            $table->string('exception_code', 50);
+            $table->string('severity', 20)->default('MEDIUM');
             $table->decimal('variance_amount', 12, 2)->default(0.00);
             $table->string('status', 20)->default('OPEN');
-            $table->string('assigned_role', 30);
-            $table->unsignedBigInteger('resolved_by_user')->nullable();
+            $table->string('assigned_role', 50)->nullable();
             $table->text('remarks')->nullable();
             $table->timestamps();
         });
