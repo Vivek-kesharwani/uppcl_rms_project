@@ -11,3 +11,5 @@ Route::get('/exceptions', [ReconciliationController::class, 'exceptions']);
 Route::post('/agency/upload', [UploadController::class, 'uploadAgency']);
 Route::post('/billing/upload', [UploadController::class, 'uploadBilling']);
 Route::post('/bank/upload', [UploadController::class, 'uploadBank']);
+
+Route::get('/uploads', [UploadController::class, 'uploads']);
