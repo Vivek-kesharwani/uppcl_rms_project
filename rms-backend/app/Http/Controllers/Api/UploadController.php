@@ -23,11 +23,27 @@ class UploadController extends Controller
 
     public function uploadBilling(Request $request, CsvImportService $service)
     {
-        return response()->json($service->importBilling('test-file.csv'));
+        $request->validate([
+            'file' => 'required|file|mimes:csv,txt'
+        ]);
+
+        $path = $request->file('file')->store('uploads');
+
+        $result = $service->importBilling($path);
+
+        return response()->json($result);
     }
 
     public function uploadBank(Request $request, CsvImportService $service)
     {
-        return response()->json($service->importBank('test-file.csv'));
+        $request->validate([
+            'file' => 'required|file|mimes:csv,txt'
+        ]);
+
+        $path = $request->file('file')->store('uploads');
+
+        $result = $service->importBank($path);
+
+        return response()->json($result);
     }
 }
