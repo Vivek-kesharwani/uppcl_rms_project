@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\UploadController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ExceptionController;
+use App\Http\Controllers\Api\TransactionSearchController;
 
 Route::post('/reconciliation/run', [ReconciliationController::class, 'run']);
 Route::get('/reconciliation/summary', [ReconciliationController::class, 'summary']);
@@ -54,4 +55,14 @@ Route::post('/exceptions/{id}/resolve', [ExceptionController::class, 'resolve'])
 Route::post('/exceptions/{id}/assign', [ExceptionController::class, 'assign'])
     ->middleware(['auth:sanctum', 'role:HQ_ADMIN,DISCOM_ADMIN']);
 
-    
+Route::get('/dashboard/recent-uploads', [DashboardController::class, 'recentUploads'])
+    ->middleware(['auth:sanctum', 'role:HQ_ADMIN,DISCOM_ADMIN,OPERATOR,VIEWER']);
+
+Route::get('/dashboard/recent-exceptions', [DashboardController::class, 'recentExceptions'])
+    ->middleware(['auth:sanctum', 'role:HQ_ADMIN,DISCOM_ADMIN,OPERATOR,VIEWER']);
+
+Route::get('/dashboard/charts', [DashboardController::class, 'charts'])
+    ->middleware(['auth:sanctum', 'role:HQ_ADMIN,DISCOM_ADMIN,OPERATOR,VIEWER']);
+
+Route::get('/transactions/search', [TransactionSearchController::class, 'search'])
+    ->middleware(['auth:sanctum', 'role:HQ_ADMIN,DISCOM_ADMIN,OPERATOR,VIEWER']);

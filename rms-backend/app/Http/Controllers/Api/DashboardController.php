@@ -25,4 +25,49 @@ class DashboardController extends Controller
             ]
         ]);
     }
+
+    public function recentUploads()
+    {
+        return response()->json([
+            'status' => 'success',
+            'data' => DB::table('upload_logs')
+                ->orderBy('created_at', 'desc')
+                ->limit(10)
+                ->get()
+        ]);
+    }
+
+    public function recentExceptions()
+    {
+        return response()->json([
+            'status' => 'success',
+            'data' => DB::table('exception_records')
+                ->orderBy('created_at', 'desc')
+                ->limit(10)
+                ->get()
+        ]);
+    }
+
+    public function charts()
+    {
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'exception_status' => DB::table('exception_records')
+                    ->select('status', DB::raw('COUNT(*) as total'))
+                    ->groupBy('status')
+                    ->get(),
+
+                'exception_types' => DB::table('exception_records')
+                    ->select('exception_code', DB::raw('COUNT(*) as total'))
+                    ->groupBy('exception_code')
+                    ->get(),
+
+                'reconciliation_status' => DB::table('reconciliation_masters')
+                    ->select('recon_status', DB::raw('COUNT(*) as total'))
+                    ->groupBy('recon_status')
+                    ->get(),
+            ]
+        ]);
+    }
 }
