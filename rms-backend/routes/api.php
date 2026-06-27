@@ -10,14 +10,16 @@ Route::post('/reconciliation/run', [ReconciliationController::class, 'run']);
 Route::get('/reconciliation/summary', [ReconciliationController::class, 'summary']);
 Route::get('/exceptions', [ReconciliationController::class, 'exceptions']);
 
-Route::post('/agency/upload', [UploadController::class, 'uploadAgency']);
+Route::post('/agency/upload', [UploadController::class, 'uploadAgency'])
+    ->middleware(['auth:sanctum', 'role:HQ_ADMIN,DISCOM_ADMIN,OPERATOR']);
+
 Route::post('/billing/upload', [UploadController::class, 'uploadBilling']);
 Route::post('/bank/upload', [UploadController::class, 'uploadBank']);
 
 Route::get('/uploads', [UploadController::class, 'uploads']);
 Route::get('/dashboard/overview', [DashboardController::class, 'overview']);
 
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login'])->name('login');
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
