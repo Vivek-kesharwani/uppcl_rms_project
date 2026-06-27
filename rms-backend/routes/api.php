@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\ReconciliationController;
 use App\Http\Controllers\Api\UploadController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ExceptionController;
 
 Route::post('/reconciliation/run', [ReconciliationController::class, 'run']);
 Route::get('/reconciliation/summary', [ReconciliationController::class, 'summary']);
@@ -40,3 +41,17 @@ Route::get('/uploads', [UploadController::class, 'uploads'])
 
 Route::get('/exceptions', [ReconciliationController::class, 'exceptions'])
     ->middleware(['auth:sanctum', 'role:HQ_ADMIN,DISCOM_ADMIN,OPERATOR']);
+
+Route::get('/exceptions/{id}', [ExceptionController::class, 'show'])
+    ->middleware(['auth:sanctum', 'role:HQ_ADMIN,DISCOM_ADMIN,OPERATOR']);
+
+Route::put('/exceptions/{id}', [ExceptionController::class, 'update'])
+    ->middleware(['auth:sanctum', 'role:HQ_ADMIN,DISCOM_ADMIN,OPERATOR']);
+
+Route::post('/exceptions/{id}/resolve', [ExceptionController::class, 'resolve'])
+    ->middleware(['auth:sanctum', 'role:HQ_ADMIN,DISCOM_ADMIN,OPERATOR']);
+
+Route::post('/exceptions/{id}/assign', [ExceptionController::class, 'assign'])
+    ->middleware(['auth:sanctum', 'role:HQ_ADMIN,DISCOM_ADMIN']);
+
+    
