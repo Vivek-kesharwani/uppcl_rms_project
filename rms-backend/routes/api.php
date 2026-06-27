@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ExceptionController;
 use App\Http\Controllers\Api\TransactionSearchController;
+use App\Http\Controllers\Api\ReportController;
 
 Route::post('/reconciliation/run', [ReconciliationController::class, 'run']);
 Route::get('/reconciliation/summary', [ReconciliationController::class, 'summary']);
@@ -65,4 +66,13 @@ Route::get('/dashboard/charts', [DashboardController::class, 'charts'])
     ->middleware(['auth:sanctum', 'role:HQ_ADMIN,DISCOM_ADMIN,OPERATOR,VIEWER']);
 
 Route::get('/transactions/search', [TransactionSearchController::class, 'search'])
+    ->middleware(['auth:sanctum', 'role:HQ_ADMIN,DISCOM_ADMIN,OPERATOR,VIEWER']);
+
+Route::get('/reports/daily-reconciliation', [ReportController::class, 'dailyReconciliation'])
+    ->middleware(['auth:sanctum', 'role:HQ_ADMIN,DISCOM_ADMIN,OPERATOR,VIEWER']);
+
+Route::get('/reports/exception-summary', [ReportController::class, 'exceptionSummary'])
+    ->middleware(['auth:sanctum', 'role:HQ_ADMIN,DISCOM_ADMIN,OPERATOR,VIEWER']);
+
+Route::get('/reports/settlement-summary', [ReportController::class, 'settlementSummary'])
     ->middleware(['auth:sanctum', 'role:HQ_ADMIN,DISCOM_ADMIN,OPERATOR,VIEWER']);
