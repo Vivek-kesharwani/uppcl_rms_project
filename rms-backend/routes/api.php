@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ExceptionController;
 use App\Http\Controllers\Api\TransactionSearchController;
 use App\Http\Controllers\Api\ReportController;
+use App\Http\Controllers\UploadHistoryController;
 
 Route::post('/reconciliation/run', [ReconciliationController::class, 'run']);
 Route::get('/reconciliation/summary', [ReconciliationController::class, 'summary']);
@@ -76,3 +77,5 @@ Route::get('/reports/exception-summary', [ReportController::class, 'exceptionSum
 
 Route::get('/reports/settlement-summary', [ReportController::class, 'settlementSummary'])
     ->middleware(['auth:sanctum', 'role:HQ_ADMIN,DISCOM_ADMIN,OPERATOR,VIEWER']);
+
+Route::get('/upload-history', [UploadHistoryController::class, 'index']);

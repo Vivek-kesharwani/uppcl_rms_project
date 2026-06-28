@@ -9,14 +9,51 @@ import {
 } from "react-icons/fa";
 
 function Sidebar() {
+  const user = JSON.parse(localStorage.getItem("user")) || {};
+  const role = user.role;
+
   const menuItems = [
-    { name: "Dashboard", path: "/dashboard", icon: <FaTachometerAlt /> },
-    { name: "Upload Files", path: "/upload", icon: <FaUpload /> },
-    { name: "Upload History", path: "/upload-history", icon: <FaHistory /> },
-    { name: "Exceptions", path: "/exceptions", icon: <FaExclamationTriangle /> },
-    { name: "Transaction Search", path: "/search", icon: <FaSearch /> },
-    { name: "Reports", path: "/reports", icon: <FaChartBar /> },
+    {
+      name: "Dashboard",
+      path: "/dashboard",
+      icon: <FaTachometerAlt />,
+      roles: ["HQ_ADMIN", "DISCOM_ADMIN", "OPERATOR", "VIEWER"],
+    },
+    {
+      name: "Upload Files",
+      path: "/upload",
+      icon: <FaUpload />,
+      roles: ["HQ_ADMIN", "DISCOM_ADMIN", "OPERATOR"],
+    },
+    {
+      name: "Upload History",
+      path: "/upload-history",
+      icon: <FaHistory />,
+      roles: ["HQ_ADMIN", "DISCOM_ADMIN", "OPERATOR"],
+    },
+    {
+      name: "Exceptions",
+      path: "/exceptions",
+      icon: <FaExclamationTriangle />,
+      roles: ["HQ_ADMIN", "DISCOM_ADMIN", "OPERATOR"],
+    },
+    {
+      name: "Transaction Search",
+      path: "/search",
+      icon: <FaSearch />,
+      roles: ["HQ_ADMIN", "DISCOM_ADMIN", "OPERATOR", "VIEWER"],
+    },
+    {
+      name: "Reports",
+      path: "/reports",
+      icon: <FaChartBar />,
+      roles: ["HQ_ADMIN", "DISCOM_ADMIN", "OPERATOR", "VIEWER"],
+    },
   ];
+
+  const visibleItems = menuItems.filter((item) =>
+    item.roles.includes(role)
+  );
 
   return (
     <div className="w-64 bg-slate-900 text-white min-h-screen">
@@ -25,7 +62,7 @@ function Sidebar() {
       </div>
 
       <div className="mt-4">
-        {menuItems.map((item) => (
+        {visibleItems.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}
