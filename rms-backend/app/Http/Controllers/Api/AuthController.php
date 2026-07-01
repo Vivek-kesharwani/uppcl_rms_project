@@ -23,6 +23,7 @@ class AuthController extends Controller
         }
 
         $user = Auth::user();
+        $user->load('domain', 'systemRole');
 
         $token = $user->createToken('rms_auth_token')->plainTextToken;
 
@@ -34,16 +35,36 @@ class AuthController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
+
+                // legacy role, keep for backward compatibility
                 'role' => $user->role,
+
+                // new enterprise identity fields
+                'domain' => $user->domain?->name,
+                'system_role' => $user->systemRole?->name,
             ]
         ]);
     }
 
     public function me(Request $request)
     {
+        $user = $request->user();
+        $user->load('domain', 'systemRole');
+
         return response()->json([
             'status' => 'success',
-            'user' => $request->user()
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+
+                // legacy role
+                'role' => $user->role,
+
+                // new enterprise identity fields
+                'domain' => $user->domain?->name,
+                'system_role' => $user->systemRole?->name,
+            ]
         ]);
     }
 

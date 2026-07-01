@@ -9,7 +9,7 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        User::updateOrCreate(
+        \App\Models\User::updateOrCreate(
             ['email' => 'hqadmin@uppcl.com'],
             [
                 'name' => 'HQ Admin',
@@ -18,7 +18,7 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        User::updateOrCreate(
+        \App\Models\User::updateOrCreate(
             ['email' => 'discom@uppcl.com'],
             [
                 'name' => 'DISCOM Admin',
@@ -27,21 +27,12 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        User::updateOrCreate(
-            ['email' => 'operator@uppcl.com'],
+        \App\Models\User::updateOrCreate(
+            ['email' => 'agency@uppcl.com'],
             [
-                'name' => 'Operator',
+                'name' => 'Agency User',
                 'password' => bcrypt('password123'),
-                'role' => 'OPERATOR',
-            ]
-        );
-
-        User::updateOrCreate(
-            ['email' => 'viewer@uppcl.com'],
-            [
-                'name' => 'Viewer',
-                'password' => bcrypt('password123'),
-                'role' => 'VIEWER',
+                'role' => 'AGENCY',
             ]
         );
     }
