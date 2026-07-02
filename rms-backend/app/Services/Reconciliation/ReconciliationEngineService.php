@@ -10,9 +10,12 @@ class ReconciliationEngineService
     public function __construct(
         private MatchingSetResolverService $resolver,
         private MatchingEngineService $matchingEngine,
+        private MultiPassMatchingService $multiPassMatching,
         private RuleEngineService $ruleEngine,
         private TruthMatrixService $truthMatrix,
-        private ResultGenerationService $resultService
+        private ResultGenerationService $resultService,
+        private ExceptionGenerationService $exceptionService,
+        private ExceptionClassificationService $exceptionClassifier
     ) {}
 
     public function run(ReconciliationBatch $batch): array
@@ -32,15 +35,34 @@ class ReconciliationEngineService
         foreach ($workItems as $workItem) {
             $records = $this->matchingEngine->getRecordsForWorkItem($workItem);
 
-            $rightIndex = $records['right_records']->keyBy('transaction_id');
+            $matchedRightIds = [];
 
             foreach ($records['left_records'] as $leftRecord) {
-                $rightRecord = $rightIndex->get($leftRecord->transaction_id);
+                $rightRecord = $this->multiPassMatching->findMatch(
+                    $leftRecord,
+                    $records['right_records']
+                );
 
                 if (!$rightRecord) {
+                    $decision = $this->exceptionClassifier->classify(
+                        $leftRecord,
+                        null,
+                        $this->exceptionService->missingRight($workItem)
+                    );
+
+                    $this->resultService->storeResult(
+                        $workItem,
+                        $leftRecord,
+                        null,
+                        ['results' => []],
+                        $decision
+                    );
+
                     $exceptions++;
                     continue;
                 }
+
+                $matchedRightIds[$rightRecord->id] = true;
 
                 $evaluation = $this->ruleEngine->evaluate(
                     $workItem['matching_set_id'],
@@ -49,6 +71,12 @@ class ReconciliationEngineService
                 );
 
                 $decision = $this->truthMatrix->decide($evaluation);
+
+                $decision = $this->exceptionClassifier->classify(
+                    $leftRecord,
+                    $rightRecord,
+                    $decision
+                );
 
                 $this->resultService->storeResult(
                     $workItem,
@@ -63,6 +91,28 @@ class ReconciliationEngineService
                 } else {
                     $exceptions++;
                 }
+            }
+
+            foreach ($records['right_records'] as $rightRecord) {
+                if (isset($matchedRightIds[$rightRecord->id])) {
+                    continue;
+                }
+
+                $decision = $this->exceptionClassifier->classify(
+                    null,
+                    $rightRecord,
+                    $this->exceptionService->missingLeft($workItem)
+                );
+
+                $this->resultService->storeResult(
+                    $workItem,
+                    null,
+                    $rightRecord,
+                    ['results' => []],
+                    $decision
+                );
+
+                $exceptions++;
             }
         }
 

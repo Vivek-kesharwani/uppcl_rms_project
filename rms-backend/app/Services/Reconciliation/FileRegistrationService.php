@@ -30,11 +30,12 @@ class FileRegistrationService
             );
         }
 
-        return SourceFile::firstOrCreate(
+        return SourceFile::updateOrCreate(
             [
                 'source_id' => $detectedFile['source_id'],
                 'file_name' => $fileName,
             ],
+            
             [
                 'file_path' => $detectedFile['file_path'],
                 'file_type' => $detectedFile['file_type'],
@@ -42,9 +43,11 @@ class FileRegistrationService
                 'business_month' => $periodInfo['business_month'],
                 'file_size' => $detectedFile['file_size'],
                 'status' => 'RECEIVED',
+                'error_message' => null,
                 'received_at' => now(),
             ]
         );
+
     }
 
     private function extractPeriodInfo(string $fileName, string $fileType): ?array

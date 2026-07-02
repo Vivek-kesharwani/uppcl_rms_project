@@ -55,6 +55,11 @@ class StagingLoaderService
 
                     'transaction_status' => $clean['transaction_status'],
 
+                    'settlement_ref' => $clean['settlement_ref'],
+                    'utr_number' => $clean['utr_number'],
+                    'settlement_date' => $clean['settlement_date'],
+                    'settlement_amount' => $clean['settlement_amount'],
+
                     'period_type' => $sourceFile->file_type,
                     'business_date' => $sourceFile->business_date,
                     'business_month' => $sourceFile->business_month,
