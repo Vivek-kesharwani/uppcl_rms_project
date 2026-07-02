@@ -3,47 +3,61 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\ReconciliationBatch;
+use App\Models\ReconciliationResult;
+use App\Models\SourceFile;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
     public function overview()
     {
+        $batch = ReconciliationBatch::latest()->first();
+
         return response()->json([
             'status' => 'success',
             'data' => [
-                'total_transactions' => DB::table('reconciliation_masters')->count(),
-                'matched' => DB::table('reconciliation_masters')->where('recon_status', 'MATCHED')->count(),
-                'exceptions' => DB::table('reconciliation_masters')->where('recon_status', 'EXCEPTION')->count(),
-                'amount_mismatch' => DB::table('exception_records')->where('exception_code', 'AMOUNT_MISMATCH')->count(),
-                'missing_settlement' => DB::table('exception_records')->where('exception_code', 'MISSING_SETTLEMENT')->count(),
-                'upload_count' => DB::table('upload_logs')->count(),
-                'latest_uploads' => DB::table('upload_logs')
-                    ->orderBy('created_at', 'desc')
-                    ->limit(5)
-                    ->get(),
+                'batch' => $batch,
+                'total_files' => $batch?->total_files ?? 0,
+                'ready_files' => $batch?->ready_files ?? 0,
+                'total_records' => $batch?->total_records ?? 0,
+                'matched_records' => $batch?->matched_records ?? 0,
+                'exception_records' => $batch?->exception_records ?? 0,
+                'batch_status' => $batch?->status ?? 'NO_BATCH',
             ]
         ]);
     }
 
-    public function recentUploads()
+    public function files()
     {
         return response()->json([
             'status' => 'success',
-            'data' => DB::table('upload_logs')
-                ->orderBy('created_at', 'desc')
-                ->limit(10)
-                ->get()
+            'data' => SourceFile::orderBy('source_id')->get()
         ]);
     }
 
-    public function recentExceptions()
+    public function batches()
     {
         return response()->json([
             'status' => 'success',
-            'data' => DB::table('exception_records')
-                ->orderBy('created_at', 'desc')
-                ->limit(10)
+            'data' => ReconciliationBatch::latest()->get()
+        ]);
+    }
+
+    public function results()
+    {
+        return response()->json([
+            'status' => 'success',
+            'data' => ReconciliationResult::latest()->get()
+        ]);
+    }
+
+    public function exceptions()
+    {
+        return response()->json([
+            'status' => 'success',
+            'data' => ReconciliationResult::where('result_status', 'EXCEPTION')
+                ->latest()
                 ->get()
         ]);
     }
@@ -53,19 +67,17 @@ class DashboardController extends Controller
         return response()->json([
             'status' => 'success',
             'data' => [
-                'exception_status' => DB::table('exception_records')
-                    ->select('status', DB::raw('COUNT(*) as total'))
-                    ->groupBy('status')
+                'result_status' => ReconciliationResult::select('result_status', DB::raw('COUNT(*) as total'))
+                    ->groupBy('result_status')
                     ->get(),
 
-                'exception_types' => DB::table('exception_records')
+                'exception_types' => ReconciliationResult::whereNotNull('exception_code')
                     ->select('exception_code', DB::raw('COUNT(*) as total'))
                     ->groupBy('exception_code')
                     ->get(),
 
-                'reconciliation_status' => DB::table('reconciliation_masters')
-                    ->select('recon_status', DB::raw('COUNT(*) as total'))
-                    ->groupBy('recon_status')
+                'file_status' => SourceFile::select('status', DB::raw('COUNT(*) as total'))
+                    ->groupBy('status')
                     ->get(),
             ]
         ]);
