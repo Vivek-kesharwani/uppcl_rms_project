@@ -22,7 +22,17 @@ function Login() {
       localStorage.setItem("token", response.data.token);
       localStorage.setItem("user", JSON.stringify(response.data.user));
 
-      navigate("/dashboard");
+      const user = response.data.user;
+
+      if (user.domain === "HQ") {
+        navigate("/hq/dashboard");
+      } else if (user.domain === "DISCOM") {
+        navigate("/discom/dashboard");
+      } else if (user.domain === "AGENCY") {
+        navigate("/agency/dashboard");
+      } else {
+        navigate("/dashboard");
+      }
     } catch {
       setError("Invalid email or password");
     }

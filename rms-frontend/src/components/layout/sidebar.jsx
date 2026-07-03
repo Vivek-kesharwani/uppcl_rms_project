@@ -6,59 +6,83 @@ import {
   FaExclamationTriangle,
   FaSearch,
   FaChartBar,
+  FaCogs,
 } from "react-icons/fa";
 
 function Sidebar() {
   const user = JSON.parse(localStorage.getItem("user")) || {};
-  const role = user.role;
+  const domain = user.domain;
 
   const menuItems = [
     {
-      name: "Dashboard",
-      path: "/dashboard",
+      name: "HQ Dashboard",
+      path: "/hq/dashboard",
       icon: <FaTachometerAlt />,
-      roles: ["HQ_ADMIN", "DISCOM_ADMIN", "OPERATOR", "VIEWER"],
+      domains: ["HQ"],
     },
     {
-      name: "Upload Files",
+      name: "DISCOM Dashboard",
+      path: "/discom/dashboard",
+      icon: <FaTachometerAlt />,
+      domains: ["DISCOM"],
+    },
+    {
+      name: "Agency Dashboard",
+      path: "/agency/dashboard",
+      icon: <FaTachometerAlt />,
+      domains: ["AGENCY"],
+    },
+    {
+      name: "Agency Upload",
       path: "/upload",
       icon: <FaUpload />,
-      roles: ["HQ_ADMIN", "DISCOM_ADMIN", "OPERATOR"],
+      domains: ["HQ", "AGENCY"],
     },
     {
-      name: "Upload History",
+      name: "File Monitor",
       path: "/upload-history",
       icon: <FaHistory />,
-      roles: ["HQ_ADMIN", "DISCOM_ADMIN", "OPERATOR"],
+      domains: ["HQ", "AGENCY"],
     },
     {
-      name: "Exceptions",
-      path: "/exceptions",
-      icon: <FaExclamationTriangle />,
-      roles: ["HQ_ADMIN", "DISCOM_ADMIN", "OPERATOR"],
+      name: "Reconciliation",
+      path: "/reconciliation",
+      icon: <FaCogs />,
+      domains: ["HQ"],
     },
     {
       name: "Transaction Search",
       path: "/search",
       icon: <FaSearch />,
-      roles: ["HQ_ADMIN", "DISCOM_ADMIN", "OPERATOR", "VIEWER"],
+      domains: ["HQ", "DISCOM"],
+    },
+    {
+      name: "Exceptions",
+      path: "/exceptions",
+      icon: <FaExclamationTriangle />,
+      domains: ["HQ", "DISCOM"],
     },
     {
       name: "Reports",
       path: "/reports",
       icon: <FaChartBar />,
-      roles: ["HQ_ADMIN", "DISCOM_ADMIN", "OPERATOR", "VIEWER"],
+      domains: ["HQ", "DISCOM"],
     },
   ];
 
   const visibleItems = menuItems.filter((item) =>
-    item.roles.includes(role)
+    item.domains.includes(domain)
   );
 
   return (
     <div className="w-64 bg-slate-900 text-white min-h-screen">
       <div className="text-2xl font-bold text-center py-6 border-b border-slate-700">
         RMS System
+      </div>
+
+      <div className="px-4 py-3 border-b border-slate-700 text-sm text-slate-300">
+        <div className="font-semibold text-white">{user.name || "User"}</div>
+        <div>{domain || "Domain"}</div>
       </div>
 
       <div className="mt-4">

@@ -12,6 +12,11 @@ import Search from "./pages/Search";
 import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
 
+import HqDashboard from "./pages/hq/HqDashboard";
+import DiscomDashboard from "./pages/discom/DiscomDashboard";
+import AgencyDashboard from "./pages/agency/AgencyDashboard";
+import ReconciliationWorkbench from "./pages/ReconciliationWorkbench";
+
 function App() {
   return (
     <BrowserRouter>
@@ -26,6 +31,11 @@ function App() {
           }
         >
           <Route path="/dashboard" element={<Dashboard />} />
+
+          <Route path="/hq/dashboard" element={<HqDashboard />} />
+          <Route path="/discom/dashboard" element={<DiscomDashboard />} />
+          <Route path="/agency/dashboard" element={<AgencyDashboard />} />
+
           <Route path="/upload" element={<Upload />} />
           <Route path="/upload-history" element={<UploadHistory />} />
           <Route path="/exceptions" element={<Exceptions />} />
@@ -35,6 +45,8 @@ function App() {
 
         <Route path="/home" element={<Navigate to="/dashboard" replace />} />
         <Route path="*" element={<NotFound />} />
+
+        <Route path="/reconciliation" element={<ReconciliationWorkbench />} />
       </Routes>
     </BrowserRouter>
   );

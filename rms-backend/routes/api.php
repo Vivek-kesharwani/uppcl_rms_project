@@ -50,3 +50,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/reports/exception-summary', [ReportController::class, 'exceptionSummary']);
     Route::get('/reports/settlement-summary', [ReportController::class, 'settlementSummary']);
 });
+
+Route::get('/reconciliation/matching-sets', [ReconciliationController::class, 'matchingSets']);
+Route::get('/reconciliation/matching-sets/{matchingSet}/files', [ReconciliationController::class, 'filesForMatchingSet']);
+Route::post('/reconciliation/run-selected', [ReconciliationController::class, 'runSelected']);
