@@ -4,7 +4,7 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\DB;
 
-class ReconciliationService
+class LegacyReconciliationService
 {
     public function run(): array
     {

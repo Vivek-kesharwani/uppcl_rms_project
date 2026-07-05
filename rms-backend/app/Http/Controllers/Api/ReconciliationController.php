@@ -28,24 +28,30 @@ class ReconciliationController extends Controller
     {
         return response()->json([
             'status' => 'success',
-            'data' => MatchingSet::where('is_active', true)->get(),
+            'data' => MatchingSet::where('is_active', true)
+                ->orderBy('execution_order')
+                ->get(),
         ]);
     }
 
     public function filesForMatchingSet(MatchingSet $matchingSet): JsonResponse
     {
-        $leftFiles = SourceFile::whereHas('source', function ($query) use ($matchingSet) {
-            $query->where('source_type', $matchingSet->left_source_type);
-        })
-        ->orderByDesc('business_date')
-        ->get();
-        
-        $rightFiles = SourceFile::whereHas('source', function ($query) use ($matchingSet) {
-            $query->where('source_type', $matchingSet->right_source_type);
-        })
-        ->orderByDesc('business_date')
-        ->get();
-        
+        $leftFiles = SourceFile::with('source')
+            ->whereHas('source', function ($query) use ($matchingSet) {
+                $query->where('source_type', $matchingSet->left_source_type);
+            })
+            ->orderByDesc('business_date')
+            ->orderByDesc('created_at')
+            ->get();
+
+        $rightFiles = SourceFile::with('source')
+            ->whereHas('source', function ($query) use ($matchingSet) {
+                $query->where('source_type', $matchingSet->right_source_type);
+            })
+            ->orderByDesc('business_date')
+            ->orderByDesc('created_at')
+            ->get();
+
         return response()->json([
             'status' => 'success',
             'data' => [
@@ -61,17 +67,22 @@ class ReconciliationController extends Controller
         SelectedFileReconciliationService $service
     ): JsonResponse {
         $validated = $request->validate([
-            'batch_id' => ['required', 'exists:reconciliation_batches,id'],
-            'matching_set_id' => ['required', 'exists:matching_sets,id'],
-            'left_file_id' => ['required', 'exists:source_files,id'],
-            'right_file_id' => ['required', 'exists:source_files,id'],
+            'batch_id' => ['required', 'integer', 'exists:reconciliation_batches,id'],
+            'matching_set_id' => ['required', 'integer', 'exists:matching_sets,id'],
+            'left_file_id' => ['required', 'integer', 'exists:source_files,id'],
+            'right_file_id' => ['required', 'integer', 'exists:source_files,id'],
         ]);
 
+        $batch = ReconciliationBatch::findOrFail($validated['batch_id']);
+        $matchingSet = MatchingSet::findOrFail($validated['matching_set_id']);
+        $leftFile = SourceFile::with('source')->findOrFail($validated['left_file_id']);
+        $rightFile = SourceFile::with('source')->findOrFail($validated['right_file_id']);
+
         $summary = $service->run(
-            ReconciliationBatch::findOrFail($validated['batch_id']),
-            MatchingSet::findOrFail($validated['matching_set_id']),
-            SourceFile::findOrFail($validated['left_file_id']),
-            SourceFile::findOrFail($validated['right_file_id'])
+            $batch,
+            $matchingSet,
+            $leftFile,
+            $rightFile
         );
 
         return response()->json([

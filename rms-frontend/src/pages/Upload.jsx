@@ -1,127 +1,240 @@
 import { useState } from "react";
 import { FaUpload } from "react-icons/fa";
-import api from "../services/api";
+import { uploadFile } from "../services/api";
 import PageHeader from "../components/common/PageHeader";
-import LoadingSpinner from "../components/common/LoadingSpinner";
 
 function Upload() {
-  const [files, setFiles] = useState({
-    agency: null,
-    billing: null,
-    bank: null,
-  });
 
-  const [loadingType, setLoadingType] = useState("");
-  const [message, setMessage] = useState("");
-  const [reconciliation, setReconciliation] = useState(null);
+    const [file, setFile] = useState(null);
 
-  const uploadTypes = [
-    { key: "agency", title: "Agency CSV", description: "Upload agency transaction records" },
-    { key: "billing", title: "Billing CSV", description: "Upload billing transaction records" },
-    { key: "bank", title: "Bank CSV", description: "Upload bank settlement records" },
-  ];
+    const [uploading, setUploading] = useState(false);
 
-  const handleFileChange = (type, file) => {
-    setFiles((prev) => ({ ...prev, [type]: file }));
-  };
+    const [response, setResponse] = useState(null);
 
-  const uploadFile = async (type) => {
-    if (!files[type]) {
-      setMessage(`Please select ${type} CSV file`);
-      return;
-    }
+    const [error, setError] = useState("");
 
-    const formData = new FormData();
-    formData.append("file", files[type]);
+    const handleUpload = async () => {
 
-    setLoadingType(type);
-    setMessage("");
-    setReconciliation(null);
+        if (!file) {
 
-    try {
-      const response = await api.post(`/${type}/upload`, formData);
-      setMessage(`${type.toUpperCase()} upload successful. Rows: ${response.data.inserted_rows}`);
-      setReconciliation(response.data.reconciliation || null);
-    } catch (error) {
-      setMessage(error.response?.data?.message || `${type.toUpperCase()} upload failed`);
-    } finally {
-      setLoadingType("");
-    }
-  };
+            setError("Please choose a CSV file.");
 
-  return (
-    <div>
-      <PageHeader
-        title="Upload Files"
-        subtitle="Upload Agency, Billing, and Bank CSV files for reconciliation"
-      />
+            return;
 
-      {message && (
-        <div className="mb-6 bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg">
-          {message}
-        </div>
-      )}
+        }
 
-      {reconciliation && (
-        <div className="mb-6 bg-white rounded-xl shadow border border-slate-200 p-5">
-          <h2 className="font-semibold text-slate-800 mb-3">Reconciliation Summary</h2>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
-            <Summary label="Total" value={reconciliation.total} />
-            <Summary label="Matched" value={reconciliation.matched} />
-            <Summary label="Exceptions" value={reconciliation.exceptions} />
-            <Summary label="Amount Mismatch" value={reconciliation.amount_mismatch} />
-            <Summary label="Missing Settlement" value={reconciliation.missing_settlement} />
-          </div>
-        </div>
-      )}
+        const formData = new FormData();
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {uploadTypes.map((item) => (
-          <div key={item.key} className="bg-white rounded-xl shadow border border-slate-200 p-6">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="bg-blue-100 text-blue-700 p-3 rounded-lg">
-                <FaUpload />
-              </div>
-              <div>
-                <h2 className="text-lg font-semibold text-slate-800">{item.title}</h2>
-                <p className="text-sm text-slate-500">{item.description}</p>
-              </div>
-            </div>
+        formData.append("file", file);
 
-            <input
-              type="file"
-              accept=".csv"
-              onChange={(e) => handleFileChange(item.key, e.target.files[0])}
-              className="w-full mt-4 mb-4 text-sm"
+        setUploading(true);
+
+        setError("");
+
+        setResponse(null);
+
+        try {
+
+            const res = await uploadFile(formData);
+
+            setResponse(res.data.data);
+
+        } catch (err) {
+
+            setError(
+
+                err.response?.data?.message ||
+
+                "Upload failed."
+
+            );
+
+        }
+
+        setUploading(false);
+
+    };
+
+    return (
+
+        <div>
+
+            <PageHeader
+
+                title="Enterprise File Upload"
+
+                subtitle="Upload reconciliation source files. Source detection is automatic from filename."
+
             />
 
-            <button
-              onClick={() => uploadFile(item.key)}
-              disabled={loadingType === item.key}
-              className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:bg-slate-400"
-            >
-              {loadingType === item.key ? "Uploading..." : `Upload ${item.title}`}
-            </button>
-          </div>
-        ))}
-      </div>
+            <div className="bg-white rounded-xl shadow p-8">
 
-      {loadingType && (
-        <div className="mt-6">
-          <LoadingSpinner text={`Uploading ${loadingType} file...`} />
+                <div className="border-2 border-dashed rounded-xl p-10 text-center">
+
+                    <FaUpload
+
+                        className="mx-auto text-5xl text-blue-600"
+
+                    />
+
+                    <h2 className="text-xl font-semibold mt-4">
+
+                        Upload CSV File
+
+                    </h2>
+
+                    <p className="text-gray-500 mt-2">
+
+                        Supported Format
+
+                    </p>
+
+                    <p className="font-mono mt-1">
+
+                        SourceName_daily_DDMMYYYY.csv
+
+                    </p>
+
+                    <p className="font-mono">
+
+                        SourceName_monthly_MMYYYY.csv
+
+                    </p>
+
+                    <input
+
+                        type="file"
+
+                        accept=".csv"
+
+                        className="mt-8"
+
+                        onChange={(e)=>setFile(e.target.files[0])}
+
+                    />
+
+                    <button
+
+                        onClick={handleUpload}
+
+                        disabled={uploading}
+
+                        className="mt-6 bg-blue-600 text-white px-8 py-3 rounded-lg"
+
+                    >
+
+                        {
+
+                            uploading
+
+                                ?
+
+                                "Uploading..."
+
+                                :
+
+                                "Upload"
+
+                        }
+
+                    </button>
+
+                </div>
+
+            </div>
+
+            {
+
+                error &&
+
+                <div className="mt-6 bg-red-100 border border-red-300 rounded-lg p-5">
+
+                    {error}
+
+                </div>
+
+            }
+
+            {
+
+                response &&
+
+                <div className="mt-6 bg-white rounded-xl shadow p-6">
+
+                    <h2 className="text-xl font-bold mb-5">
+
+                        Upload Summary
+
+                    </h2>
+
+                    <div className="grid grid-cols-2 gap-6">
+
+                        <Info title="Source"
+
+                              value={response.source_name} />
+
+                        <Info title="Category"
+
+                              value={response.source_type} />
+
+                        <Info title="File"
+
+                              value={response.file_name} />
+
+                        <Info title="Period"
+
+                              value={response.file_type} />
+
+                        <Info title="Business Date"
+
+                              value={response.business_date ?? "-"} />
+
+                        <Info title="Business Month"
+
+                              value={response.business_month ?? "-"} />
+
+                        <Info title="Status"
+
+                              value={response.status} />
+
+                        <Info title="Checksum"
+
+                              value={response.checksum.substring(0,18)+"..."} />
+
+                    </div>
+
+                </div>
+
+            }
+
         </div>
-      )}
-    </div>
-  );
+
+    );
+
 }
 
-function Summary({ label, value }) {
-  return (
-    <div className="bg-slate-50 rounded-lg p-3">
-      <p className="text-slate-500">{label}</p>
-      <p className="text-xl font-bold text-slate-800">{value ?? 0}</p>
-    </div>
-  );
+function Info({title,value}){
+
+    return(
+
+        <div>
+
+            <p className="text-gray-500">
+
+                {title}
+
+            </p>
+
+            <p className="font-semibold">
+
+                {value}
+
+            </p>
+
+        </div>
+
+    );
+
 }
 
 export default Upload;

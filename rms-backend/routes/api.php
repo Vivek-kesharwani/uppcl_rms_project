@@ -32,9 +32,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/reconciliation/run/{batch}', [ReconciliationController::class, 'run']);
 
-    Route::post('/agency/upload', [UploadController::class, 'uploadAgency']);
-    Route::post('/billing/upload', [UploadController::class, 'uploadBilling']);
-    Route::post('/bank/upload', [UploadController::class, 'uploadBank']);
+    Route::post('/upload', [UploadController::class, 'upload'])
+        ->middleware('auth:sanctum');
+    
+    Route::get('/uploads', [UploadController::class, 'uploads'])
+        ->middleware('auth:sanctum');
 
     Route::get('/uploads', [UploadController::class, 'uploads']);
     Route::get('/upload-history', [UploadHistoryController::class, 'index']);
@@ -44,8 +46,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/exceptions/{id}/resolve', [ExceptionController::class, 'resolve']);
     Route::post('/exceptions/{id}/assign', [ExceptionController::class, 'assign']);
 
-    Route::get('/transactions/search', [TransactionSearchController::class, 'search']);
-
     Route::get('/reports/daily-reconciliation', [ReportController::class, 'dailyReconciliation']);
     Route::get('/reports/exception-summary', [ReportController::class, 'exceptionSummary']);
     Route::get('/reports/settlement-summary', [ReportController::class, 'settlementSummary']);
@@ -54,3 +54,6 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::get('/reconciliation/matching-sets', [ReconciliationController::class, 'matchingSets']);
 Route::get('/reconciliation/matching-sets/{matchingSet}/files', [ReconciliationController::class, 'filesForMatchingSet']);
 Route::post('/reconciliation/run-selected', [ReconciliationController::class, 'runSelected']);
+
+Route::get('/file-repository', [DashboardController::class, 'fileRepository']);
+Route::get('/transactions/search', [TransactionSearchController::class, 'search']);

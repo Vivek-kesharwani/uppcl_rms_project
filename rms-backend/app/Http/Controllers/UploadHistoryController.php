@@ -2,18 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\UploadLog;
+use App\Models\SourceFile;
+use Illuminate\Http\JsonResponse;
 
 class UploadHistoryController extends Controller
 {
-    public function index()
+    public function index(): JsonResponse
     {
-        $uploads = UploadLog::latest()->get();
+        $files = SourceFile::with('source')
+            ->latest()
+            ->paginate(20);
 
         return response()->json([
             'status' => 'success',
-            'count' => $uploads->count(),
-            'data' => $uploads,
+            'count' => $files->total(),
+            'data' => $files,
         ]);
     }
 }

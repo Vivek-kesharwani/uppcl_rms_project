@@ -2,6 +2,7 @@
 
 namespace App\Services\Reconciliation;
 
+use App\Models\BatchFile;
 use App\Models\SourceFile;
 use App\Models\ReconciliationBatch;
 use App\Models\StagingTransaction;
@@ -20,11 +21,28 @@ class StagingLoaderService
     {
         $sourceFile->update([
             'status' => 'CLEANING',
+            'processing_status' => 'STAGING',
+            'processing_started_at' => now(),
+            'is_locked' => true,
         ]);
 
-        StagingTransaction::where('source_file_id', $sourceFile->id)->delete();
-        
+        $batchFile = BatchFile::where('batch_id', $batch->id)
+            ->where('source_file_id', $sourceFile->id)
+            ->first();
+
+        if ($batchFile) {
+            $batchFile->update([
+                'status' => 'LOCKED',
+                'locked_at' => now(),
+            ]);
+        }
+
+        StagingTransaction::where('batch_id', $batch->id)
+            ->where('source_file_id', $sourceFile->id)
+            ->delete();
+
         $total = 0;
+        $valid = 0;
         $failed = 0;
 
         $rows = $this->csvReader->read($sourceFile->file_path);
@@ -36,7 +54,9 @@ class StagingLoaderService
                 $clean = $this->cleaner->clean($row);
                 $validation = $this->validator->validate($clean);
 
-                if (!$validation['is_valid']) {
+                if ($validation['is_valid']) {
+                    $valid++;
+                } else {
                     $failed++;
                 }
 
@@ -54,6 +74,7 @@ class StagingLoaderService
                     'transaction_time' => $clean['transaction_time'],
 
                     'transaction_status' => $clean['transaction_status'],
+                    'payment_status' => $clean['payment_status'] ?? null,
 
                     'settlement_ref' => $clean['settlement_ref'],
                     'utr_number' => $clean['utr_number'],
@@ -83,10 +104,24 @@ class StagingLoaderService
 
         $sourceFile->update([
             'status' => 'STAGED',
+            'processing_status' => 'STAGED',
             'total_records' => $total,
-            'processed_records' => $total - $failed,
+            'valid_records' => $valid,
+            'processed_records' => $valid,
             'failed_records' => $failed,
+            'invalid_records' => $failed,
+            'staged_at' => now(),
             'processing_completed_at' => now(),
         ]);
+
+        if ($batchFile) {
+            $batchFile->update([
+                'status' => 'STAGED',
+                'total_records' => $total,
+                'staged_records' => $valid,
+                'failed_records' => $failed,
+                'staged_at' => now(),
+            ]);
+        }
     }
 }

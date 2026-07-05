@@ -65,18 +65,16 @@ export const runBatch = (batchId) =>
 
 /*
 |--------------------------------------------------------------------------
-| Uploads
+| Upload APIs
 |--------------------------------------------------------------------------
 */
 
-export const uploadAgency = (formData) =>
-    api.post("/agency/upload", formData);
-
-export const uploadBilling = (formData) =>
-    api.post("/billing/upload", formData);
-
-export const uploadBank = (formData) =>
-    api.post("/bank/upload", formData);
+export const uploadFile = (formData) =>
+    api.post("/upload", formData, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    });
 
 export const getUploads = () =>
     api.get("/uploads");
