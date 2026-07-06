@@ -21,7 +21,8 @@ class SelectedFileReconciliationService
         private TruthMatrixService $truthMatrix,
         private ResultGenerationService $resultService,
         private ExceptionGenerationService $exceptionService,
-        private ExceptionClassificationService $exceptionClassifier
+        private ExceptionClassificationService $exceptionClassifier,
+        private ResultFileGenerationService $resultFileGenerator
     ) {}
 
     public function run(
@@ -36,7 +37,6 @@ class SelectedFileReconciliationService
         );
 
         return DB::transaction(function () use ($batch, $matchingSet, $leftFile, $rightFile) {
-
             $this->validateSelectedFiles($matchingSet, $leftFile, $rightFile);
 
             $batch->update([
@@ -179,6 +179,8 @@ class SelectedFileReconciliationService
 
             $batch->refresh();
 
+            $resultFile = $this->resultFileGenerator->generate($batch);
+
             return [
                 'batch_id' => $batch->id,
                 'batch_code' => $batch->batch_code,
@@ -190,6 +192,11 @@ class SelectedFileReconciliationService
                 'total_files' => $batch->total_files,
                 'ready_files' => $batch->ready_files,
                 'total_records' => $batch->total_records,
+                'result_file' => [
+                    'id' => $resultFile->id,
+                    'file_name' => $resultFile->file_name,
+                    'status' => $resultFile->status,
+                ],
             ];
         });
     }
