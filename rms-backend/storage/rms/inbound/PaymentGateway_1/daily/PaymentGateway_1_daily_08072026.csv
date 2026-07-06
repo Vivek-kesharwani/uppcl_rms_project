@@ -1,0 +1,3 @@
+transaction_id,consumer_number,account_number,amount,transaction_date,transaction_time,settlement_ref,utr_number,settlement_date,settlement_amount,transaction_status
+TXN501,CN6001,AC6001,5000.00,2026-06-29,09:30:00,SETT201,UTR201,2026-06-29,5000.00,SUCCESS
+TXN502,CN6002,AC6002,3200.00,2026-06-29,10:50:00,SETT202,UTR202,2026-06-29,3200.00,SUCCESS

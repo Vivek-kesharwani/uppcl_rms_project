@@ -1,0 +1,4 @@
+transaction_id,consumer_number,account_number,amount,transaction_date,transaction_time,transaction_status
+TXN201,CN3001,AC3001,3200.25,2026-07-05,08:20:00,SUCCESS
+TXN202,CN3002,AC3002,4500.0,2026-07-05,09:45:00,FAILED
+TXN203,CN3003,AC3003,1750.6,2026-07-05,13:05:00,SUCCESS

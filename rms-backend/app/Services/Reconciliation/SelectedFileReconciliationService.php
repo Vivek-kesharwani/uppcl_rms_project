@@ -14,6 +14,7 @@ use InvalidArgumentException;
 class SelectedFileReconciliationService
 {
     public function __construct(
+        private BatchCreationService $batchCreation,
         private StagingLoaderService $stagingLoader,
         private MultiPassMatchingService $multiPassMatching,
         private RuleEngineService $ruleEngine,
@@ -24,26 +25,19 @@ class SelectedFileReconciliationService
     ) {}
 
     public function run(
-        ReconciliationBatch $batch,
         MatchingSet $matchingSet,
         SourceFile $leftFile,
         SourceFile $rightFile
     ): array {
+        $batch = $this->batchCreation->create(
+            $matchingSet,
+            $leftFile,
+            $rightFile
+        );
+
         return DB::transaction(function () use ($batch, $matchingSet, $leftFile, $rightFile) {
 
-            /*
-            |--------------------------------------------------------------------------
-            | 1. Validate File Selection
-            |--------------------------------------------------------------------------
-            */
-
             $this->validateSelectedFiles($matchingSet, $leftFile, $rightFile);
-
-            /*
-            |--------------------------------------------------------------------------
-            | 2. Start Batch
-            |--------------------------------------------------------------------------
-            */
 
             $batch->update([
                 'status' => 'RECONCILING',
@@ -54,38 +48,14 @@ class SelectedFileReconciliationService
                 'error_message' => null,
             ]);
 
-            /*
-            |--------------------------------------------------------------------------
-            | 3. Register Files Used In Batch
-            |--------------------------------------------------------------------------
-            */
-
             $this->registerBatchFiles($batch, $matchingSet, $leftFile, $rightFile);
-
-            /*
-            |--------------------------------------------------------------------------
-            | 4. Stage Selected Files
-            |--------------------------------------------------------------------------
-            */
 
             $this->stagingLoader->load($leftFile, $batch);
             $this->stagingLoader->load($rightFile, $batch);
 
-            /*
-            |--------------------------------------------------------------------------
-            | 5. Clear Previous Results For Same Batch + Matching Set
-            |--------------------------------------------------------------------------
-            */
-
             ReconciliationResult::where('batch_id', $batch->id)
                 ->where('matching_set_id', $matchingSet->id)
                 ->delete();
-
-            /*
-            |--------------------------------------------------------------------------
-            | 6. Prepare Work Item
-            |--------------------------------------------------------------------------
-            */
 
             $workItem = [
                 'batch_id' => $batch->id,
@@ -109,12 +79,6 @@ class SelectedFileReconciliationService
                 'business_month' => $leftFile->business_month,
             ];
 
-            /*
-            |--------------------------------------------------------------------------
-            | 7. Fetch Cleaned Staging Records
-            |--------------------------------------------------------------------------
-            */
-
             $leftRecords = StagingTransaction::where('batch_id', $batch->id)
                 ->where('source_file_id', $leftFile->id)
                 ->where('cleaning_status', 'CLEANED')
@@ -125,23 +89,15 @@ class SelectedFileReconciliationService
                 ->where('cleaning_status', 'CLEANED')
                 ->get();
 
-            /*
-            |--------------------------------------------------------------------------
-            | 8. Run Matching
-            |--------------------------------------------------------------------------
-            */
-
             $matchedRightIds = [];
 
             foreach ($leftRecords as $leftRecord) {
-
                 $rightRecord = $this->multiPassMatching->findMatch(
                     $leftRecord,
                     $rightRecords
                 );
 
                 if (!$rightRecord) {
-
                     $decision = $this->exceptionClassifier->classify(
                         $leftRecord,
                         null,
@@ -184,14 +140,7 @@ class SelectedFileReconciliationService
                 );
             }
 
-            /*
-            |--------------------------------------------------------------------------
-            | 9. Detect Right-Side Unmatched Records
-            |--------------------------------------------------------------------------
-            */
-
             foreach ($rightRecords as $rightRecord) {
-
                 if (isset($matchedRightIds[$rightRecord->id])) {
                     continue;
                 }
@@ -211,24 +160,12 @@ class SelectedFileReconciliationService
                 );
             }
 
-            /*
-            |--------------------------------------------------------------------------
-            | 10. Mark Batch Files As Processed
-            |--------------------------------------------------------------------------
-            */
-
             BatchFile::where('batch_id', $batch->id)
                 ->whereIn('source_file_id', [$leftFile->id, $rightFile->id])
                 ->update([
                     'status' => 'PROCESSED',
                     'processed_at' => now(),
                 ]);
-
-            /*
-            |--------------------------------------------------------------------------
-            | 11. Mark Source Files As Reconciled
-            |--------------------------------------------------------------------------
-            */
 
             SourceFile::whereIn('id', [$leftFile->id, $rightFile->id])
                 ->update([
@@ -238,18 +175,13 @@ class SelectedFileReconciliationService
                     'is_locked' => true,
                 ]);
 
-            /*
-            |--------------------------------------------------------------------------
-            | 12. Refresh Batch Statistics Dynamically
-            |--------------------------------------------------------------------------
-            */
-
             $this->refreshBatchStatistics($batch);
 
             $batch->refresh();
 
             return [
                 'batch_id' => $batch->id,
+                'batch_code' => $batch->batch_code,
                 'matching_set_id' => $matchingSet->id,
                 'left_file_id' => $leftFile->id,
                 'right_file_id' => $rightFile->id,
@@ -302,37 +234,37 @@ class SelectedFileReconciliationService
         SourceFile $leftFile,
         SourceFile $rightFile
     ): void {
-        BatchFile::updateOrCreate(
-            [
-                'batch_id' => $batch->id,
-                'source_file_id' => $leftFile->id,
-                'file_side' => 'LEFT',
-            ],
-            [
-                'source_id' => $leftFile->source_id,
-                'matching_set_id' => $matchingSet->id,
-                'file_role' => 'PRIMARY',
-                'status' => 'SELECTED',
-                'selected_at' => now(),
-                'error_message' => null,
-            ]
-        );
+        BatchFile::create([
+            'batch_id' => $batch->id,
+            'source_file_id' => $leftFile->id,
+            'source_id' => $leftFile->source_id,
+            'matching_set_id' => $matchingSet->id,
+            'file_side' => 'LEFT',
+            'file_role' => 'PRIMARY',
+            'status' => 'SELECTED',
+            'total_records' => 0,
+            'staged_records' => 0,
+            'failed_records' => 0,
+            'selected_at' => now(),
+            'locked_at' => now(),
+            'error_message' => null,
+        ]);
 
-        BatchFile::updateOrCreate(
-            [
-                'batch_id' => $batch->id,
-                'source_file_id' => $rightFile->id,
-                'file_side' => 'RIGHT',
-            ],
-            [
-                'source_id' => $rightFile->source_id,
-                'matching_set_id' => $matchingSet->id,
-                'file_role' => 'COMPARISON',
-                'status' => 'SELECTED',
-                'selected_at' => now(),
-                'error_message' => null,
-            ]
-        );
+        BatchFile::create([
+            'batch_id' => $batch->id,
+            'source_file_id' => $rightFile->id,
+            'source_id' => $rightFile->source_id,
+            'matching_set_id' => $matchingSet->id,
+            'file_side' => 'RIGHT',
+            'file_role' => 'COMPARISON',
+            'status' => 'SELECTED',
+            'total_records' => 0,
+            'staged_records' => 0,
+            'failed_records' => 0,
+            'selected_at' => now(),
+            'locked_at' => now(),
+            'error_message' => null,
+        ]);
 
         SourceFile::whereIn('id', [$leftFile->id, $rightFile->id])
             ->update([

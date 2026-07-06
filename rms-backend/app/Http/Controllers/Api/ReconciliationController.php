@@ -67,19 +67,16 @@ class ReconciliationController extends Controller
         SelectedFileReconciliationService $service
     ): JsonResponse {
         $validated = $request->validate([
-            'batch_id' => ['required', 'integer', 'exists:reconciliation_batches,id'],
             'matching_set_id' => ['required', 'integer', 'exists:matching_sets,id'],
             'left_file_id' => ['required', 'integer', 'exists:source_files,id'],
             'right_file_id' => ['required', 'integer', 'exists:source_files,id'],
         ]);
 
-        $batch = ReconciliationBatch::findOrFail($validated['batch_id']);
         $matchingSet = MatchingSet::findOrFail($validated['matching_set_id']);
         $leftFile = SourceFile::with('source')->findOrFail($validated['left_file_id']);
         $rightFile = SourceFile::with('source')->findOrFail($validated['right_file_id']);
 
         $summary = $service->run(
-            $batch,
             $matchingSet,
             $leftFile,
             $rightFile

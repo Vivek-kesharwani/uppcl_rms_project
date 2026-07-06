@@ -49,6 +49,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/reports/daily-reconciliation', [ReportController::class, 'dailyReconciliation']);
     Route::get('/reports/exception-summary', [ReportController::class, 'exceptionSummary']);
     Route::get('/reports/settlement-summary', [ReportController::class, 'settlementSummary']);
+
+    Route::get('/exceptions', [ExceptionController::class, 'index']);
+    Route::get('/exceptions/{id}', [ExceptionController::class, 'show']);
+    Route::put('/exceptions/{id}', [ExceptionController::class, 'update']);
+    Route::post('/exceptions/{id}/assign', [ExceptionController::class, 'assign']);
+    Route::post('/exceptions/{id}/resolve', [ExceptionController::class, 'resolve']);
+    Route::post('/exceptions/{id}/verify', [ExceptionController::class, 'verify']);
+    Route::post('/exceptions/{id}/close', [ExceptionController::class, 'close']);
+
+    Route::post('/exceptions/{id}/reopen', [ExceptionController::class, 'reopen']);
 });
 
 Route::get('/reconciliation/matching-sets', [ReconciliationController::class, 'matchingSets']);
@@ -57,3 +67,4 @@ Route::post('/reconciliation/run-selected', [ReconciliationController::class, 'r
 
 Route::get('/file-repository', [DashboardController::class, 'fileRepository']);
 Route::get('/transactions/search', [TransactionSearchController::class, 'search']);
+Route::get('/exceptions-summary', [ExceptionController::class, 'summary']);
