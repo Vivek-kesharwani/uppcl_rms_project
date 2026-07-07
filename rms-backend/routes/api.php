@@ -9,6 +9,8 @@ use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\TransactionSearchController;
 use App\Http\Controllers\Api\UploadController;
 use App\Http\Controllers\UploadHistoryController;
+use App\Http\Controllers\Api\ReconciliationResultFileController;
+use App\Http\Controllers\Api\MisDashboardController;
 
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 
@@ -59,6 +61,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/exceptions/{id}/close', [ExceptionController::class, 'close']);
 
     Route::post('/exceptions/{id}/reopen', [ExceptionController::class, 'reopen']);
+
+    Route::get('/result-files', [ReconciliationResultFileController::class, 'index']);
+    Route::get('/result-files/{id}', [ReconciliationResultFileController::class, 'show']);
+    Route::get('/result-files/{id}/download', [ReconciliationResultFileController::class, 'download']);
+
+    Route::get('/reconciliation/history', [ReconciliationController::class, 'history']);
 });
 
 Route::get('/reconciliation/matching-sets', [ReconciliationController::class, 'matchingSets']);
@@ -68,3 +76,5 @@ Route::post('/reconciliation/run-selected', [ReconciliationController::class, 'r
 Route::get('/file-repository', [DashboardController::class, 'fileRepository']);
 Route::get('/transactions/search', [TransactionSearchController::class, 'search']);
 Route::get('/exceptions-summary', [ExceptionController::class, 'summary']);
+Route::get('/mis/summary', [MisDashboardController::class, 'summary']);
+Route::get('/mis/analytics', [MisDashboardController::class, 'analytics']);

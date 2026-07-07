@@ -40,6 +40,9 @@ class ReconciliationController extends Controller
             ->whereHas('source', function ($query) use ($matchingSet) {
                 $query->where('source_type', $matchingSet->left_source_type);
             })
+            ->where('processing_status', 'COMPLETED')
+            ->where('status', 'STAGED')
+            ->whereNotNull('business_date')
             ->orderByDesc('business_date')
             ->orderByDesc('created_at')
             ->get();
@@ -48,14 +51,54 @@ class ReconciliationController extends Controller
             ->whereHas('source', function ($query) use ($matchingSet) {
                 $query->where('source_type', $matchingSet->right_source_type);
             })
+            ->where('processing_status', 'COMPLETED')
+            ->where('status', 'STAGED')
+            ->whereNotNull('business_date')
             ->orderByDesc('business_date')
             ->orderByDesc('created_at')
             ->get();
+
+        $availableDates = $leftFiles
+            ->pluck('business_date')
+            ->merge($rightFiles->pluck('business_date'))
+            ->filter()
+            ->map(fn ($date) => \Carbon\Carbon::parse($date)->format('Y-m-d'))
+            ->unique()
+            ->sortDesc()
+            ->values();
+
+        $recommendedPair = null;
+
+        foreach ($availableDates as $date) {
+            $leftFile = $leftFiles->first(function ($file) use ($date) {
+                return $file->business_date &&
+                    \Carbon\Carbon::parse($file->business_date)->format('Y-m-d') === $date;
+            });
+
+            $rightFile = $rightFiles->first(function ($file) use ($date) {
+                return $file->business_date &&
+                    \Carbon\Carbon::parse($file->business_date)->format('Y-m-d') === $date;
+            });
+
+            if ($leftFile && $rightFile) {
+                $recommendedPair = [
+                    'business_date' => $date,
+                    'left_file_id' => $leftFile->id,
+                    'left_file_name' => $leftFile->file_name,
+                    'right_file_id' => $rightFile->id,
+                    'right_file_name' => $rightFile->file_name,
+                ];
+
+                break;
+            }
+        }
 
         return response()->json([
             'status' => 'success',
             'data' => [
                 'matching_set' => $matchingSet,
+                'available_dates' => $availableDates,
+                'recommended_pair' => $recommendedPair,
                 'left_files' => $leftFiles,
                 'right_files' => $rightFiles,
             ],
@@ -86,6 +129,21 @@ class ReconciliationController extends Controller
             'status' => 'success',
             'message' => 'Selected file reconciliation completed successfully.',
             'data' => $summary,
+        ]);
+    }
+
+    public function history(): JsonResponse
+    {
+        $batches = ReconciliationBatch::with([
+            'batchFiles.sourceFile.source',
+        ])
+            ->latest()
+            ->paginate(50);
+
+        return response()->json([
+            'status' => 'success',
+            'count' => $batches->total(),
+            'data' => $batches,
         ]);
     }
 }
