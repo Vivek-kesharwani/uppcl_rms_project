@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
-import { getFiles } from "../services/api";
+import { useEffect, useMemo, useState } from "react";
+import { getFiles } from "../services/dashboardService";
+
 import PageHeader from "../components/common/PageHeader";
 import StatusBadge from "../components/common/StatusBadge";
 import LoadingSpinner from "../components/common/LoadingSpinner";
@@ -9,91 +10,213 @@ function UploadHistory() {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [search, setSearch] = useState("");
+  const [businessDate, setBusinessDate] = useState("");
+  const [fileType, setFileType] = useState("");
+
   useEffect(() => {
     loadFiles();
   }, []);
 
   async function loadFiles() {
     try {
+      setLoading(true);
+
       const response = await getFiles();
+
       setFiles(response.data.data || []);
-    } catch (error) {
-      console.error("Files API error:", error);
+    } catch (err) {
+      console.error("File Monitor Error:", err);
     } finally {
       setLoading(false);
     }
   }
 
-  if (loading) {
-    return <LoadingSpinner text="Loading file monitor..." />;
-  }
+  const filteredFiles = useMemo(() => {
+    return files.filter((file) => {
+      const searchText = (
+        `${file.file_name} ${file.source?.source_name || ""} ${file.source?.source_type || ""}`
+      ).toLowerCase();
 
-  if (files.length === 0) {
-    return (
-      <EmptyState
-        title="No files found"
-        message="No reconciliation source files have been registered yet."
-      />
-    );
+      const matchesSearch = searchText.includes(search.toLowerCase());
+
+      const matchesDate =
+        !businessDate ||
+        file.business_date?.substring(0, 10) === businessDate;
+
+      const matchesType =
+        !fileType ||
+        file.file_type === fileType;
+
+      return (
+        matchesSearch &&
+        matchesDate &&
+        matchesType
+      );
+    });
+  }, [files, search, businessDate, fileType]);
+
+  if (loading) {
+    return <LoadingSpinner text="Loading Enterprise File Monitor..." />;
   }
 
   return (
-    <div>
+    <div className="space-y-6">
+
       <PageHeader
-        title="File Monitor"
-        subtitle="Live source files registered, validated, and staged by the reconciliation engine"
+        title="Enterprise File Monitor"
+        description="Monitor uploaded files, processing lifecycle and reconciliation readiness."
       />
 
-      <div className="bg-white rounded-xl shadow border border-slate-200 overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-slate-100 text-slate-600">
-            <tr>
-              <th className="p-4 text-left">Source ID</th>
-              <th className="p-4 text-left">File Name</th>
-              <th className="p-4 text-left">Type</th>
-              <th className="p-4 text-left">Business Date</th>
-              <th className="p-4 text-left">File Size</th>
-              <th className="p-4 text-left">Records</th>
-              <th className="p-4 text-left">Failed</th>
-              <th className="p-4 text-left">Status</th>
-            </tr>
-          </thead>
+      {/* Filter Section */}
 
-          <tbody>
-            {files.map((item) => (
-              <tr key={item.id} className="border-b hover:bg-slate-50">
-                <td className="p-4">{item.source_id}</td>
+      <div className="bg-white rounded-xl shadow border border-slate-200 p-5">
 
-                <td className="p-4 font-medium">
-                  {item.file_name}
-                </td>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
 
-                <td className="p-4">{item.file_type}</td>
+          <input
+            type="text"
+            placeholder="Search File / Source..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none"
+          />
 
-                <td className="p-4">
-                  {item.business_date?.slice(0, 10)}
-                </td>
+          <input
+            type="date"
+            value={businessDate}
+            onChange={(e) => setBusinessDate(e.target.value)}
+            className="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none"
+          />
 
-                <td className="p-4">
-                  {item.file_size} bytes
-                </td>
+          <select
+            value={fileType}
+            onChange={(e) => setFileType(e.target.value)}
+            className="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none"
+          >
+            <option value="">All Types</option>
+            <option value="DAILY">Daily</option>
+            <option value="MONTHLY">Monthly</option>
+          </select>
 
-                <td className="p-4">
-                  {item.processed_records}/{item.total_records}
-                </td>
+          <button
+            onClick={loadFiles}
+            className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-6 py-3 font-semibold"
+          >
+            Refresh
+          </button>
 
-                <td className="p-4">
-                  {item.failed_records}
-                </td>
+        </div>
 
-                <td className="p-4">
-                  <StatusBadge value={item.status} />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="mt-4 text-sm text-slate-500">
+          Showing <strong>{filteredFiles.length}</strong> of{" "}
+          <strong>{files.length}</strong> registered files.
+        </div>
+
       </div>
+
+      {/* Table */}
+
+      {filteredFiles.length === 0 ? (
+        <EmptyState
+          title="No Matching Files"
+          message="No uploaded files match the selected filters."
+        />
+      ) : (
+        <div className="bg-white rounded-xl shadow border border-slate-200 overflow-x-auto">
+
+          <table className="min-w-full text-sm">
+
+            <thead className="bg-slate-100 text-slate-700">
+
+              <tr>
+
+                <th className="p-4 text-left">Source</th>
+
+                <th className="p-4 text-left">Category</th>
+
+                <th className="p-4 text-left">File Name</th>
+
+                <th className="p-4 text-left">Business Date</th>
+
+                <th className="p-4 text-left">File Type</th>
+
+                <th className="p-4 text-left">Records</th>
+
+                <th className="p-4 text-left">Processing</th>
+
+                <th className="p-4 text-left">Reconciliation</th>
+
+                <th className="p-4 text-left">Locked</th>
+
+              </tr>
+
+            </thead>
+
+            <tbody>
+
+              {filteredFiles.map((file) => (
+
+                <tr
+                  key={file.id}
+                  className="border-b hover:bg-slate-50 transition"
+                >
+
+                  <td className="p-4 font-semibold">
+                    {file.source?.source_name}
+                  </td>
+
+                  <td className="p-4">
+                    {file.source?.source_type}
+                  </td>
+
+                  <td className="p-4">
+                    {file.file_name}
+                  </td>
+
+                  <td className="p-4">
+                    {file.business_date?.substring(0, 10) || "-"}
+                  </td>
+
+                  <td className="p-4">
+                    {file.file_type}
+                  </td>
+
+                  <td className="p-4">
+                    {file.processed_records}/{file.total_records}
+                  </td>
+
+                  <td className="p-4">
+                    <StatusBadge value={file.processing_status} />
+                  </td>
+
+                  <td className="p-4">
+                    <StatusBadge value={file.reconciliation_status} />
+                  </td>
+
+                  <td className="p-4">
+                    {file.is_locked ? (
+                      <span className="text-red-600 font-semibold">
+                        Locked
+                      </span>
+                    ) : (
+                      <span className="text-green-600 font-semibold">
+                        Open
+                      </span>
+                    )}
+                  </td>
+
+                </tr>
+
+              ))}
+
+            </tbody>
+
+          </table>
+
+        </div>
+      )}
+
     </div>
   );
 }

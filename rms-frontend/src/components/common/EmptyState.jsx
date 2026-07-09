@@ -1,9 +1,8 @@
-function EmptyState({ title = "No data found", message }) {
+function EmptyState({ title = "No data found", description = "There is nothing to show right now." }) {
   return (
-    <div className="bg-white rounded-xl shadow border border-slate-200 p-10 text-center">
-      <div className="text-4xl mb-3">📄</div>
-      <h2 className="text-xl font-semibold text-slate-800">{title}</h2>
-      {message && <p className="text-slate-500 mt-2">{message}</p>}
+    <div className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center">
+      <h3 className="text-lg font-semibold text-slate-800">{title}</h3>
+      <p className="mt-1 text-sm text-slate-500">{description}</p>
     </div>
   );
 }

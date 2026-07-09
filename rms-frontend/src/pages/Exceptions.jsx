@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getExceptions } from "../services/api";
+import { getExceptions } from "../services/exceptionService";
 import PageHeader from "../components/common/PageHeader";
 
 function Exceptions() {

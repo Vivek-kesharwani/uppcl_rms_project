@@ -4,15 +4,17 @@ import Topbar from "./Topbar";
 
 function DashboardLayout() {
   return (
-    <div className="flex">
+    <div className="min-h-screen bg-slate-100">
       <Sidebar />
 
-      <div className="flex-1 bg-slate-100 min-h-screen">
+      <div className="min-h-screen lg:pl-72">
         <Topbar />
 
-        <div className="p-6">
-          <Outlet />
-        </div>
+        <main className="p-6">
+          <div className="mx-auto max-w-7xl">
+            <Outlet />
+          </div>
+        </main>
       </div>
     </div>
   );

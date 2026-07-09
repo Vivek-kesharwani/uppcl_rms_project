@@ -2,17 +2,18 @@ import { useEffect, useState } from "react";
 import {
     getOverview,
     getCharts,
-    runBatch,
-} from "../services/api";
+} from "../services/dashboardService";
 
+import PageHeader from "../components/common/PageHeader";
+import LoadingSpinner from "../components/common/LoadingSpinner";
 import KpiCard from "../components/dashboard/KpiCard";
 import DashboardCharts from "../components/dashboard/DashboardCharts";
+import LatestBatchCard from "../components/dashboard/LatestBatchCard";
 
-function Dashboard() {
-    const [overview, setOverview] = useState({});
-    const [charts, setCharts] = useState({});
+function Dashboard({ role }) {
+    const [overview, setOverview] = useState(null);
+    const [charts, setCharts] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [running, setRunning] = useState(false);
 
     useEffect(() => {
         loadDashboard();
@@ -23,93 +24,41 @@ function Dashboard() {
             setLoading(true);
 
             const overviewRes = await getOverview();
-            const chartRes = await getCharts();
+            const chartsRes = await getCharts();
 
             setOverview(overviewRes.data.data);
-            setCharts(chartRes.data.data);
-        } catch (err) {
-            console.error(err);
+            setCharts(chartsRes.data.data);
+
+        } catch (error) {
+            console.error("Dashboard load failed:", error);
         } finally {
             setLoading(false);
         }
     }
 
-    async function executeBatch() {
-        try {
-            setRunning(true);
-
-            await runBatch(1);
-
-            await loadDashboard();
-        } catch (err) {
-            console.error(err);
-        } finally {
-            setRunning(false);
-        }
-    }
-
     if (loading) {
-        return (
-            <div className="text-center py-20 text-xl">
-                Loading Dashboard...
-            </div>
-        );
+        return <LoadingSpinner text="Loading dashboard..." />;
     }
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-6">
+            <PageHeader
+                title="Enterprise Reconciliation Dashboard"
+                description={`Logged in as: ${role}`}
+            />
 
-            <div className="flex justify-between items-center">
-
-                <h1 className="text-3xl font-bold">
-                    Enterprise Reconciliation Dashboard
-                </h1>
-
-                <button
-                    onClick={executeBatch}
-                    disabled={running}
-                    className="bg-blue-600 text-white px-5 py-2 rounded-lg"
-                >
-                    {running
-                        ? "Running..."
-                        : "Run Reconciliation"}
-                </button>
-
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+                <KpiCard title="Total Files" value={overview?.total_files} />
+                <KpiCard title="Available Files" value={overview?.available_files} />
+                <KpiCard title="Reconciled Files" value={overview?.reconciled_files} />
+                <KpiCard title="Total Batches" value={overview?.total_batches} />
+                <KpiCard title="Total Records" value={overview?.total_records} />
+                <KpiCard title="Matched Records" value={overview?.matched_records} />
+                <KpiCard title="Exception Records" value={overview?.exception_records} />
+                <KpiCard title="Batch Status" value={overview?.batch_status || "-"} />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-5">
-
-                <KpiCard
-                    title="Files"
-                    value={overview.total_files}
-                />
-
-                <KpiCard
-                    title="Ready Files"
-                    value={overview.ready_files}
-                />
-
-                <KpiCard
-                    title="Records"
-                    value={overview.total_records}
-                />
-
-                <KpiCard
-                    title="Matched"
-                    value={overview.matched_records}
-                />
-
-                <KpiCard
-                    title="Exceptions"
-                    value={overview.exception_records}
-                />
-
-                <KpiCard
-                    title="Batch Status"
-                    value={overview.batch_status}
-                />
-
-            </div>
+            <LatestBatchCard batch={overview?.batch} />
 
             <DashboardCharts chartData={charts} />
 

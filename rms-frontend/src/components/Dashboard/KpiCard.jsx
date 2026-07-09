@@ -1,9 +1,10 @@
-function KpiCard({ title, value, subtitle }) {
+function KpiCard({ title, value }) {
   return (
-    <div className="bg-white rounded-xl shadow p-5 border border-slate-200">
-      <p className="text-sm text-slate-500">{title}</p>
-      <h2 className="text-3xl font-bold text-slate-800 mt-2">{value}</h2>
-      {subtitle && <p className="text-xs text-slate-400 mt-2">{subtitle}</p>}
+    <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+      <p className="text-sm font-medium text-slate-500">{title}</p>
+      <h2 className="mt-3 text-3xl font-bold text-slate-800">
+        {value ?? 0}
+      </h2>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { FaUpload } from "react-icons/fa";
-import { uploadFile } from "../services/api";
+import { uploadFile } from "../services/uploadService";
 import PageHeader from "../components/common/PageHeader";
 
 function Upload() {

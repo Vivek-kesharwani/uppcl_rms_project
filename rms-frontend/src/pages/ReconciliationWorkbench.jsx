@@ -3,8 +3,7 @@ import {
   getMatchingSets,
   getFilesForMatchingSet,
   runSelectedReconciliation,
-  getResults,
-} from "../services/api";
+} from "../services/reconciliationService";
 
 function ReconciliationWorkbench() {
   const [matchingSets, setMatchingSets] = useState([]);

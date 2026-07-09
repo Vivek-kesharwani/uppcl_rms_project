@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
-import api from "../services/api";
+import {
+  getDailyReport,
+  getExceptionReport,
+  getSettlementReport,
+} from "../services/reportService";
 import PageHeader from "../components/common/PageHeader";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import EmptyState from "../components/common/EmptyState";

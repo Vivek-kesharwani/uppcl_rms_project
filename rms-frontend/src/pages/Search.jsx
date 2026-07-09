@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getResults } from "../services/api";
+import { getResults } from "../services/dashboardService";
 
 function Search() {
     const [txnId, setTxnId] = useState("");
