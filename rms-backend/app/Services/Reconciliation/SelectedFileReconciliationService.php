@@ -10,6 +10,7 @@ use App\Models\SourceFile;
 use App\Models\StagingTransaction;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
+use App\Services\Audit\AuditLogService;
 
 class SelectedFileReconciliationService
 {
@@ -22,7 +23,8 @@ class SelectedFileReconciliationService
         private ResultGenerationService $resultService,
         private ExceptionGenerationService $exceptionService,
         private ExceptionClassificationService $exceptionClassifier,
-        private ResultFileGenerationService $resultFileGenerator
+        private ResultFileGenerationService $resultFileGenerator,
+        private AuditLogService $auditLog
     ) {}
 
     public function run(
@@ -180,6 +182,12 @@ class SelectedFileReconciliationService
             $batch->refresh();
 
             $resultFile = $this->resultFileGenerator->generate($batch);
+
+            $this->auditLog->log(
+                'RUN_RECONCILIATION',
+                'RECONCILIATION',
+                'Executed batch ' . $batch->batch_code
+            );
 
             return [
                 'batch_id' => $batch->id,

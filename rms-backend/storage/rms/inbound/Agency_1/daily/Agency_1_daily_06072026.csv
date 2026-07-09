@@ -1,2 +1,0 @@
-transaction_id,consumer_number,account_number,amount,transaction_date,transaction_time,transaction_status
-TXN003,CN1003,AC1003,1350,2026-07-04,9:45:00,SUCCESS

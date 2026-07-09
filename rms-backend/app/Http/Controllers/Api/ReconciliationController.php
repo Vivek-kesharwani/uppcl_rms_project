@@ -40,9 +40,11 @@ class ReconciliationController extends Controller
             ->whereHas('source', function ($query) use ($matchingSet) {
                 $query->where('source_type', $matchingSet->left_source_type);
             })
-            ->where('processing_status', 'COMPLETED')
-            ->where('status', 'STAGED')
+            ->where('reconciliation_status', 'NOT_USED')
+            ->where('is_locked', false)
             ->whereNotNull('business_date')
+            ->whereIn('status', ['RECEIVED', 'STAGED'])
+            ->whereIn('processing_status', ['NOT_STARTED', 'STAGED', 'COMPLETED'])
             ->orderByDesc('business_date')
             ->orderByDesc('created_at')
             ->get();
@@ -51,9 +53,11 @@ class ReconciliationController extends Controller
             ->whereHas('source', function ($query) use ($matchingSet) {
                 $query->where('source_type', $matchingSet->right_source_type);
             })
-            ->where('processing_status', 'COMPLETED')
-            ->where('status', 'STAGED')
+            ->where('reconciliation_status', 'NOT_USED')
+            ->where('is_locked', false)
             ->whereNotNull('business_date')
+            ->whereIn('status', ['RECEIVED', 'STAGED'])
+            ->whereIn('processing_status', ['NOT_STARTED', 'STAGED', 'COMPLETED'])
             ->orderByDesc('business_date')
             ->orderByDesc('created_at')
             ->get();

@@ -1,0 +1,5 @@
+"Batch Code","Result File Name","Transaction ID","Consumer Number","Settlement Ref","UTR Number","Result Status","Exception Code","Variance Amount",Remarks,"Business Date","Business Month"
+BANK_VS_PAYMENT_GATEWAY_DAILY_20260708_000729_1N2V6,Result_Bank_1_vs_PaymentGateway_1_daily_08072026.csv,TXN301,CN4001,SETT101,UTR101,EXCEPTION,MISSING_IN_TARGET,0.00,"Matching record not found.",2026-07-08,
+BANK_VS_PAYMENT_GATEWAY_DAILY_20260708_000729_1N2V6,Result_Bank_1_vs_PaymentGateway_1_daily_08072026.csv,TXN302,CN4002,SETT102,UTR102,EXCEPTION,MISSING_IN_TARGET,0.00,"Matching record not found.",2026-07-08,
+BANK_VS_PAYMENT_GATEWAY_DAILY_20260708_000729_1N2V6,Result_Bank_1_vs_PaymentGateway_1_daily_08072026.csv,TXN501,CN6001,SETT201,UTR201,EXCEPTION,MISSING_IN_AGENCY,0.00,"Source record missing.",2026-07-08,
+BANK_VS_PAYMENT_GATEWAY_DAILY_20260708_000729_1N2V6,Result_Bank_1_vs_PaymentGateway_1_daily_08072026.csv,TXN502,CN6002,SETT202,UTR202,EXCEPTION,MISSING_IN_AGENCY,0.00,"Source record missing.",2026-07-08,

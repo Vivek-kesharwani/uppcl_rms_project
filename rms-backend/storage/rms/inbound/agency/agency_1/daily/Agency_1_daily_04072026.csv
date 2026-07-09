@@ -1,4 +1,0 @@
-transaction_id,consumer_number,account_number,amount,transaction_date,transaction_time,transaction_status
-TXN101,CN2001,AC2001,1500.5,2026-07-04,09:00:00,SUCCESS
-TXN102,CN2002,AC2002,950.0,2026-07-04,10:30:00,SUCCESS
-TXN103,CN2003,AC2003,2100.75,2026-07-04,14:15:00,PENDING

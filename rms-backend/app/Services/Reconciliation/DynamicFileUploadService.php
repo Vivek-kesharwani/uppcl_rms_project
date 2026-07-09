@@ -4,6 +4,7 @@ namespace App\Services\Reconciliation;
 
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use App\Services\Audit\AuditLogService;
 
 class DynamicFileUploadService
 {
@@ -11,8 +12,9 @@ class DynamicFileUploadService
         private FilenameParserService $filenameParser,
         private SourceResolverService $sourceResolver,
         private StorageManagerService $storageManager,
-        private SourceFileRegistrationService $registrationService
-    ) {}
+        private SourceFileRegistrationService $registrationService,
+        private AuditLogService $auditLog
+    ){}
 
     public function upload(UploadedFile $file): array
     {
@@ -54,6 +56,13 @@ class DynamicFileUploadService
             ]);
 
             $sourceFile->refresh();
+
+            $this->auditLog->log(
+                'UPLOAD',
+                'FILE_UPLOAD',
+                'Uploaded ' . $sourceFile->file_name .
+                ' (' . $source->source_name . ')'
+            );
 
             return [
                 'status' => 'success',

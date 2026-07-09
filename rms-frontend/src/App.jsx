@@ -13,8 +13,8 @@ import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
 
 import HqDashboard from "./pages/hq/HqDashboard";
-import DiscomDashboard from "./pages/discom/DiscomDashboard";
-import AgencyDashboard from "./pages/agency/AgencyDashboard";
+import DiscomDashboard from "./pages/Discom/DiscomDashboard";
+import AgencyDashboard from "./pages/Agency/AgencyDashboard";
 import ReconciliationWorkbench from "./pages/ReconciliationWorkbench";
 
 function App() {
@@ -41,15 +41,16 @@ function App() {
           <Route path="/exceptions" element={<Exceptions />} />
           <Route path="/search" element={<Search />} />
           <Route path="/reports" element={<Reports />} />
+          <Route path="/reconciliation" element={<ReconciliationWorkbench />} />
         </Route>
 
         <Route path="/home" element={<Navigate to="/dashboard" replace />} />
         <Route path="*" element={<NotFound />} />
 
-        <Route path="/reconciliation" element={<ReconciliationWorkbench />} />
       </Routes>
     </BrowserRouter>
   );
 }
 
 export default App;
+

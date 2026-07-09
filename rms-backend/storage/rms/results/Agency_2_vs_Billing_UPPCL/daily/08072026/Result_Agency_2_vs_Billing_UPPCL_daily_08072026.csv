@@ -1,0 +1,7 @@
+"Batch Code","Result File Name","Transaction ID","Consumer Number","Settlement Ref","UTR Number","Result Status","Exception Code","Variance Amount",Remarks,"Business Date","Business Month"
+AGENCY_VS_BILLING_DAILY_20260708_185054_STY22,Result_Agency_2_vs_Billing_UPPCL_daily_08072026.csv,TXN201,CN3001,,,EXCEPTION,MISSING_IN_TARGET,0.00,"Matching record not found.",2026-07-08,
+AGENCY_VS_BILLING_DAILY_20260708_185054_STY22,Result_Agency_2_vs_Billing_UPPCL_daily_08072026.csv,TXN202,CN3002,,,EXCEPTION,MISSING_IN_TARGET,0.00,"Matching record not found.",2026-07-08,
+AGENCY_VS_BILLING_DAILY_20260708_185054_STY22,Result_Agency_2_vs_Billing_UPPCL_daily_08072026.csv,TXN203,CN3003,,,EXCEPTION,MISSING_IN_TARGET,0.00,"Matching record not found.",2026-07-08,
+AGENCY_VS_BILLING_DAILY_20260708_185054_STY22,Result_Agency_2_vs_Billing_UPPCL_daily_08072026.csv,TXN401,CN5001,,,EXCEPTION,MISSING_IN_AGENCY,0.00,"Source record missing.",2026-07-08,
+AGENCY_VS_BILLING_DAILY_20260708_185054_STY22,Result_Agency_2_vs_Billing_UPPCL_daily_08072026.csv,TXN402,CN5002,,,EXCEPTION,MISSING_IN_AGENCY,0.00,"Source record missing.",2026-07-08,
+AGENCY_VS_BILLING_DAILY_20260708_185054_STY22,Result_Agency_2_vs_Billing_UPPCL_daily_08072026.csv,TXN403,CN5003,,,EXCEPTION,MISSING_IN_AGENCY,0.00,"Source record missing.",2026-07-08,

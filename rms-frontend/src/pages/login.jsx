@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../services/api";
+import { login } from "../services/authService";
 
 function Login() {
   const navigate = useNavigate();
@@ -14,10 +14,15 @@ function Login() {
     setError("");
 
     try {
-      const response = await api.post("/login", {
-        email,
-        password,
-      });
+      const response = await login({ email, password });
+      const payload = response.data.data ?? response.data;
+      
+      localStorage.setItem("token", payload.token);
+      localStorage.setItem("user", JSON.stringify(payload.user));
+      localStorage.setItem("role", payload.user.role);
+      localStorage.setItem("domain", payload.user.domain);
+      
+      const user = payload.user;
 
       localStorage.setItem("token", response.data.token);
       localStorage.setItem("user", JSON.stringify(response.data.user));
