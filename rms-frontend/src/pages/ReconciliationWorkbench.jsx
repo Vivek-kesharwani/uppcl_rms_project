@@ -5,87 +5,136 @@ import {
   runSelectedReconciliation,
 } from "../services/reconciliationService";
 
+import PageHeader from "../components/common/PageHeader";
+import LoadingSpinner from "../components/common/LoadingSpinner";
+import FileSelector from "../components/reconciliation/FileSelector";
+import BatchDetailsCard from "../components/reconciliation/BatchDetailsCard";
+import ReconciliationSummaryCard from "../components/reconciliation/ReconciliationSummaryCard";
+
 function ReconciliationWorkbench() {
   const [matchingSets, setMatchingSets] = useState([]);
   const [selectedSet, setSelectedSet] = useState("");
+
   const [leftFiles, setLeftFiles] = useState([]);
   const [rightFiles, setRightFiles] = useState([]);
+
   const [leftFile, setLeftFile] = useState("");
   const [rightFile, setRightFile] = useState("");
+
   const [summary, setSummary] = useState(null);
-  const [results, setResults] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loadingSets, setLoadingSets] = useState(true);
+  const [loadingFiles, setLoadingFiles] = useState(false);
+  const [running, setRunning] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     loadMatchingSets();
   }, []);
 
   async function loadMatchingSets() {
-    const response = await getMatchingSets();
-    setMatchingSets(response.data.data || []);
+    try {
+      setLoadingSets(true);
+      const response = await getMatchingSets();
+      setMatchingSets(response.data.data || []);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load matching sets.");
+    } finally {
+      setLoadingSets(false);
+    }
   }
 
   async function handleSetChange(id) {
     setSelectedSet(id);
     setLeftFile("");
     setRightFile("");
+    setLeftFiles([]);
+    setRightFiles([]);
     setSummary(null);
+    setError("");
 
     if (!id) return;
 
-    const response = await getFilesForMatchingSet(id);
-    setLeftFiles(response.data.data.left_files || []);
-    setRightFiles(response.data.data.right_files || []);
+    try {
+      setLoadingFiles(true);
+
+      const response = await getFilesForMatchingSet(id);
+
+      const data = response.data.data;
+
+      setLeftFiles(data.left_files || []);
+      setRightFiles(data.right_files || []);
+
+      if (data.recommended_pair) {
+        setLeftFile(String(data.recommended_pair.left_file_id));
+        setRightFile(String(data.recommended_pair.right_file_id));
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load files for selected matching set.");
+    } finally {
+      setLoadingFiles(false);
+    }
   }
 
   async function runReconciliation() {
     if (!selectedSet || !leftFile || !rightFile) {
-      alert("Please select matching set, left file, and right file.");
+      setError("Please select matching set, left file and right file.");
       return;
     }
 
-    setLoading(true);
-
     try {
+      setRunning(true);
+      setError("");
+      setSummary(null);
+
       const response = await runSelectedReconciliation({
-        batch_id: 1,
         matching_set_id: Number(selectedSet),
         left_file_id: Number(leftFile),
         right_file_id: Number(rightFile),
       });
 
       setSummary(response.data.data);
-
-      const resultResponse = await getResults();
-      setResults(resultResponse.data.data || []);
-    } catch (error) {
-      console.error(error);
-      alert("Reconciliation failed.");
+    } catch (err) {
+      console.error(err);
+      setError(
+        err.response?.data?.message ||
+          "Reconciliation failed. Please check selected files."
+      );
     } finally {
-      setLoading(false);
+      setRunning(false);
     }
+  }
+
+  if (loadingSets) {
+    return <LoadingSpinner text="Loading reconciliation workbench..." />;
   }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Reconciliation Workbench</h1>
-        <p className="text-slate-500 mt-1">
-          Select matching set, choose source files, and run reconciliation.
-        </p>
-      </div>
+      <PageHeader
+        title="Reconciliation Workbench"
+        description="Select matching set, filter source files and run reconciliation."
+      />
 
-      <div className="bg-white rounded-xl shadow p-6">
-        <label className="block text-sm font-semibold mb-2">
+      {error && (
+        <div className="rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
+      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <label className="mb-2 block text-sm font-semibold text-slate-700">
           Matching Set
         </label>
 
         <select
           value={selectedSet}
           onChange={(e) => handleSetChange(e.target.value)}
-          className="w-full border rounded-lg px-4 py-3"
+          className="w-full rounded-lg border px-4 py-3"
         >
           <option value="">Select Matching Set</option>
+
           {matchingSets.map((set) => (
             <option key={set.id} value={set.id}>
               {set.set_name}
@@ -94,118 +143,44 @@ function ReconciliationWorkbench() {
         </select>
       </div>
 
-      {selectedSet && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <FilePanel
-            title="Left Source Files"
+      {loadingFiles && <LoadingSpinner text="Loading matching files..." />}
+
+      {selectedSet && !loadingFiles && (
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+          <FileSelector
+            title="Left Source File"
             files={leftFiles}
-            selected={leftFile}
+            selectedFileId={leftFile}
             onSelect={setLeftFile}
           />
 
-          <FilePanel
-            title="Right Source Files"
+          <FileSelector
+            title="Right Source File"
             files={rightFiles}
-            selected={rightFile}
+            selectedFileId={rightFile}
             onSelect={setRightFile}
           />
         </div>
       )}
 
-      {selectedSet && (
-        <div className="flex justify-end">
+      {selectedSet && !loadingFiles && (
+        <div className="flex justify-center">
           <button
             onClick={runReconciliation}
-            disabled={loading}
-            className="bg-blue-600 text-white px-8 py-3 rounded-lg"
+            disabled={running || !selectedSet || !leftFile || !rightFile}
+            className="rounded-lg bg-blue-600 px-10 py-3 font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {loading ? "Running..." : "Run Selected Reconciliation"}
+            {running ? "Running Reconciliation..." : "Run Reconciliation"}
           </button>
         </div>
       )}
 
       {summary && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <SummaryCard title="Matched" value={summary.matched} />
-          <SummaryCard title="Exceptions" value={summary.exceptions} />
+        <div className="space-y-6">
+          <BatchDetailsCard summary={summary} />
+          <ReconciliationSummaryCard summary={summary} />
         </div>
       )}
-
-      {summary && (
-        <div className="bg-white rounded-xl shadow overflow-x-auto">
-          <div className="p-5 border-b">
-            <h2 className="font-bold text-xl">Latest Reconciliation Results</h2>
-          </div>
-
-          <table className="w-full text-sm">
-            <thead className="bg-slate-100">
-              <tr>
-                <th className="p-4 text-left">Transaction ID</th>
-                <th className="p-4 text-left">Status</th>
-                <th className="p-4 text-left">Exception</th>
-                <th className="p-4 text-left">Remarks</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {results.slice(0, 10).map((item) => (
-                <tr key={item.id} className="border-b">
-                  <td className="p-4 font-semibold">{item.transaction_id}</td>
-                  <td className="p-4">{item.result_status}</td>
-                  <td className="p-4">{item.exception_code || "-"}</td>
-                  <td className="p-4">{item.remarks}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function FilePanel({ title, files, selected, onSelect }) {
-  return (
-    <div className="bg-white rounded-xl shadow p-6">
-      <h2 className="font-bold text-lg mb-4">{title}</h2>
-
-      <div className="space-y-3">
-        {files.map((file) => (
-          <label
-            key={file.id}
-            className={`block border rounded-lg p-4 cursor-pointer ${
-              Number(selected) === file.id
-                ? "border-blue-600 bg-blue-50"
-                : "border-slate-200"
-            }`}
-          >
-            <input
-              type="radio"
-              name={title}
-              value={file.id}
-              checked={Number(selected) === file.id}
-              onChange={(e) => onSelect(e.target.value)}
-              className="mr-3"
-            />
-
-            <span className="font-semibold">{file.file_name}</span>
-
-            <div className="text-sm text-slate-500 mt-2">
-              Status: {file.status} | Records: {file.total_records} | Date:{" "}
-              {file.business_date?.slice(0, 10)}
-            </div>
-          </label>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function SummaryCard({ title, value }) {
-  return (
-    <div className="bg-white rounded-xl shadow p-6">
-      <p className="text-slate-500">{title}</p>
-      <p className="text-3xl font-bold mt-2">{value}</p>
     </div>
   );
 }

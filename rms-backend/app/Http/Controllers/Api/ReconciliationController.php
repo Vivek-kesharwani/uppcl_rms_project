@@ -151,3 +151,27 @@ class ReconciliationController extends Controller
         ]);
     }
 }
+
+AuditLogService::log(
+    user: auth()->user(),
+    module: 'RECONCILIATION',
+    action: 'RUN_STARTED',
+    description: 'Started reconciliation batch '.$batch->batch_code,
+    request: request()
+);
+
+AuditLogService::log(
+    user: auth()->user(),
+    module: 'RECONCILIATION',
+    action: 'RUN_COMPLETED',
+    description: 'Completed reconciliation batch '.$batch->batch_code,
+    request: request()
+);
+
+AuditLogService::log(
+    user: auth()->user(),
+    module: 'RECONCILIATION',
+    action: 'RUN_FAILED',
+    description: $exception->getMessage(),
+    request: request()
+);

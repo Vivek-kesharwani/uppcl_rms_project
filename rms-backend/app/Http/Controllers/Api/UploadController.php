@@ -34,3 +34,11 @@ class UploadController extends Controller
         ]);
     }
 }
+
+AuditLogService::log(
+    user: auth()->user(),
+    module: 'FILE_UPLOAD',
+    action: 'UPLOAD',
+    description: 'Uploaded file: '.$file->getClientOriginalName(),
+    request: request()
+);

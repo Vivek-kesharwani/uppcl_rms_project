@@ -83,3 +83,11 @@ class ReportController extends Controller
         );
     }
 }
+
+AuditLogService::log(
+    user: auth()->user(),
+    module: 'REPORT',
+    action: 'GENERATE',
+    description: 'Generated Daily Reconciliation Report',
+    request: request()
+);

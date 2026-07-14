@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\UploadController;
 use App\Http\Controllers\UploadHistoryController;
 use App\Http\Controllers\Api\ReconciliationResultFileController;
 use App\Http\Controllers\Api\MisDashboardController;
+use App\Http\Controllers\Api\AuditLogController;
 
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 
@@ -67,6 +68,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/result-files/{id}/download', [ReconciliationResultFileController::class, 'download']);
 
     Route::get('/reconciliation/history', [ReconciliationController::class, 'history']);
+    
+    Route::prefix('audit-logs')->group(function () {
+        Route::get('/', [AuditLogController::class, 'index']);
+        Route::get('/summary', [AuditLogController::class, 'summary']);
+        Route::get('/filters', [AuditLogController::class, 'filters']);
+        Route::get('/{id}', [AuditLogController::class, 'show']);
+    });
 });
 
 Route::get('/reconciliation/matching-sets', [ReconciliationController::class, 'matchingSets']);
@@ -78,3 +86,4 @@ Route::get('/transactions/search', [TransactionSearchController::class, 'search'
 Route::get('/exceptions-summary', [ExceptionController::class, 'summary']);
 Route::get('/mis/summary', [MisDashboardController::class, 'summary']);
 Route::get('/mis/analytics', [MisDashboardController::class, 'analytics']);
+

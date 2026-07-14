@@ -16,6 +16,8 @@ import UploadHistory from "./pages/UploadHistory";
 import AgencyDashboard from "./pages/Agency/AgencyDashboard";
 import DiscomDashboard from "./pages/Discom/DiscomDashboard";
 import HqDashboard from "./pages/hq/HqDashboard";
+import ResultRepository from "./pages/ResultRepository";
+import AuditLogs from "./pages/AuditLogs";
 
 function App() {
   return (
@@ -38,11 +40,11 @@ function App() {
           <Route path="/upload" element={<Upload />} />
           <Route path="/upload-history" element={<UploadHistory />} />
           <Route path="/reconciliation" element={<ReconciliationWorkbench />} />
-          <Route path="/results" element={<div>Result Repository</div>} />
+          <Route path="/results" element={<ResultRepository />} />
           <Route path="/exceptions" element={<Exceptions />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/search" element={<Search />} />
-          <Route path="/audit-logs" element={<div>Audit Logs</div>} />
+          <Route path="/audit-logs" element={<AuditLogs />} />
         </Route>
 
         <Route path="/home" element={<Navigate to="/dashboard" replace />} />

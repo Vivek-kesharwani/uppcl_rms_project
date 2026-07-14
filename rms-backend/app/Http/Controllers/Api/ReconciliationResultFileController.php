@@ -91,3 +91,19 @@ class ReconciliationResultFileController extends Controller
         );
     }
 }
+
+AuditLogService::log(
+    user: auth()->user(),
+    module: 'RESULT_FILE',
+    action: 'VIEW',
+    description: 'Viewed result file '.$result->file_name,
+    request: request()
+);
+
+AuditLogService::log(
+    user: auth()->user(),
+    module: 'RESULT_FILE',
+    action: 'DOWNLOAD',
+    description: 'Downloaded result file '.$result->file_name,
+    request: request()
+);

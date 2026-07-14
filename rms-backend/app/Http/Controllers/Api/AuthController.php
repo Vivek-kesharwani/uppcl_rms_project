@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Services\Audit\AuditLogService;
 
 class AuthController extends Controller
 {
@@ -78,3 +79,12 @@ class AuthController extends Controller
         ]);
     }
 }
+
+
+AuditLogService::log(
+    user: auth()->user(),
+    module: 'AUTHENTICATION',
+    action: 'LOGOUT',
+    description: 'User logged out',
+    request: request()
+);

@@ -326,3 +326,11 @@ class ExceptionController extends Controller
         ]);
     }
 }
+
+AuditLogService::log(
+    user: auth()->user(),
+    module: 'EXCEPTION',
+    action: 'ASSIGNED',
+    description: 'Assigned exception '.$exception->case_number,
+    request: request()
+);
